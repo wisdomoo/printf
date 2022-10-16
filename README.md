@@ -2,7 +2,6 @@
 
 This project consists of a custom made printf function for C language that allows different input arguments and options; its development was part of an intensive coding program in Holberton School Bogotá.
 
-![Holberton School Logo](https://www.holbertonschool.com/holberton-logo.png)
 
 ## **Synopsis**
 
