@@ -265,5 +265,5 @@ Ubuntu 14.04 and Emacs
 
 ## **Authors**
 
-Abrahaley Hagos and Okoroafor.o
+Abrahaley Hagos and Okoroafor Wisdom.o
 
