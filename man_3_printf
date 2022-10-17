@@ -1,13 +1,13 @@
-.TH _PRINTF 3 "October 2019" "Holberton School" "Linux Programmers Manual"
+.TH _PRINTF 3 "October 2022" "ALX" "Software Engineer"
 .SH NAME
 _printf - formatted output conversion with number of bytes printed as return
 .SH SYNOPSIS
 
 Printf is a variadic function with one mandatory argument format and extra arguments that can be none at all or many.
 
-Its inclusion requires the header\ "holberton.h".
+Its inclusion requires the header\ "main.h".
 
-.B #include \ "holberton.h"
+.B #include \ "main.h"
 
 Its prototype goes as follows:
 
@@ -175,7 +175,7 @@ Characters from this array are encoded to ROT13 and printed in order up to (but 
 
 #include <limits.h>
 
-#include "holberton.h"
+#include "main.h"
 
 .RE
 
