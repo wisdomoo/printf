@@ -27,6 +27,7 @@ typedef struct Specs_t
 {
 	char s;
 	char *(*f)(const char *, int, va_list, int *);
+	int (*f)(va_list, char *, unsigned int);
 } specs_t;
 /* Custom printf function */
 int _printf(const char *format, ...);
