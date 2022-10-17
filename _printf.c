@@ -1,185 +1,50 @@
 #include "main.h"
-
 /**
- * _printf - Simulates the printf function
- * @format: Format to print to the console
+ * _printf - formatted output conversion and print data.
+ * @format: input string.
  *
- * Description: Function that simulate the printf function
- * for the following conversion specifiers:
- *    - c:    Chracter
- *    - s/S:  Strings. 's' prints the same string.
- *            'S' prints the string, changing the non-printable characters
- *            to '\x??' format, where '??' corresponds to a hexadecimal number
- *    - d/i:  Integers
- *    - o:    Octal numbers
- *    - x/X:  Hexadecimal numbers
- *    - b:    Binary numbers
- *    - u:    Unsigned numbers
- *    - %:    '%' char
- *    - r:    Reverse string
- *    - R:    Root13 of the string
- * The function considerate the next arguments, checking the usability for the
- * conversion specifier used:
- * (+)      Adds a '+' sign to positive integers
- * ( )      Adds a ' ' to the start of the number
- * (#)      Adds '0' or '0x' to the start of the octal or hexadecimal number
- * (l)      Converts the number to a 'long' type
- * (h)      Converts the number to a 'short' type
- * (width)  Add spaces(?) to the printing format
- * (preci)  Print the number with the corresponding precision
- * (0)      Add '0' to the spaces created with 'width'
- * (-)      Justify the string to the left
- *
- * Return: Number of characters printed
- * (excluding the null byte used to end output to strings)
+ * Return: number of chars printed.
  */
 int _printf(const char *format, ...)
 {
-	va_list list;
-	char *buffer, *str;
-	int i = 0, i_buffer = 0, j_spec, lenstr, stock = 0;
+	unsigned int i = 0, len = 0, ibuf = 0;
+	va_list arguments;
+	int (*function)(va_list, char *, unsigned int);
+	char *buffer;
 
-	buffer = malloc(1024);
-	if (buffer == NULL)
+	va_start(arguments, format), buffer = malloc(sizeof(char) * 1024);
+	if (!format || !buffer || (format[i] == '%' && !format[i + 1]))
 		return (-1);
-	va_start(list, format);
-	while (format && format[i])
+	if (!format[i])
+		return (0);
+	for (i = 0; format && format[i]; i++)
 	{
 		if (format[i] == '%')
 		{
-			if (check_specs(format + i, &j_spec) == 1
-			    && check_format(format + i, j_spec))
-			{
-				str = generate_malloc(format + i, j_spec, list, &lenstr);
-				lenstr = format[i + j_spec - 1] == 'c' ? lenstr : _strlen(str);
-				if (str == NULL)
-					return (free_buffer(buffer, i_buffer));
-				_memcpy(buffer, str, &i_buffer, &stock, lenstr), free(str);
-				i += j_spec;
-				continue;
+			if (format[i + 1] == '\0')
+			{	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
+				return (-1);
 			}
-			if (check_specs(format + i, &j_spec) == -1)
-				return (free_buffer(buffer, i_buffer));
-			if (format[i + 1] == 'h' || format[i + 1] == 'l')
-				_memcpy(buffer, format + i, &i_buffer, &stock, 1), j_spec = 2;
 			else
-				_memcpy(buffer, format + i, &i_buffer, &stock, j_spec);
-			i += j_spec;
-			continue;
+			{	function = get_print_func(format, i + 1);
+				if (function == NULL)
+				{
+					if (format[i + 1] == ' ' && !format[i + 2])
+						return (-1);
+					handl_buf(buffer, format[i], ibuf), len++, i--;
+				}
+				else
+				{
+					len += function(arguments, buffer, ibuf);
+					i += ev_print_func(format, i + 1);
+				}
+			} i++;
 		}
-		_memcpy(buffer, format + i, &i_buffer, &stock, 1), i++;
+		else
+			handl_buf(buffer, format[i], ibuf), len++;
+		for (ibuf = len; ibuf > 1024; ibuf -= 1024)
+			;
 	}
-	va_end(list), i_buffer = write(1, buffer, i_buffer), free(buffer);
-	return (i == 0 && !format ? -1 : stock + i_buffer);
-}
-
-/**
- * check_specs - Check if a string has a conversion specifier
- * @s: String where to check the conversion specifier
- * @p: Pointer to the variable where the length to consider is saved
- * Return: -1 if ends the string
- * 0 if does not find a conversion specifier but does not end the format
- * 1 if find a conversition specifier
- */
-int check_specs(const char *s, int *p)
-{
-	char *specs = "%csSdioxXburRp";
-	char *flags = " 0-+#123456789.lh*";
-	int i = 0, j = 0, len_flags = _strlen(flags);
-
-	while (s[i])
-	{
-		j = 0;
-		while (specs[j])
-		{
-			if (s[i] == specs[j] && i != 0)
-			{
-				*p = i + 1;
-				return (1);
-			}
-			j++;
-		}
-		j = 0;
-		while (flags[j])
-		{
-			if (s[i] == flags[j])
-				break;
-			j++;
-		}
-		if (i > 0 && j == len_flags)
-			break;
-		i++;
-	}
-	if (!s[i])
-		return (-1);
-	*p = i;
-	return (0);
-}
-
-
-/**
- * _memcpy - copies the memory from src to the buffer
- * @buffer: The destination pointer
- * @src: The source pointer
- * @i_b: Pointer to the index of the buffer
- * @stock: Pointer to the actual stock of bytes written
- * @n: bytes to use from src
- *
- * Description: Copies the memory from src to the buffer inserted.
- * the buffer has a limit of 1024. If the index of buffer is greater than
- * 1024 after the copy, writes the content to the standard output, sum the
- * bytes written and resets the index
- *
- * Return: Nothing(?)
- */
-void _memcpy(char *buffer, const char *src, int *i_b, int *stock, int n)
-{
-	int i = 0;
-
-	while (i < n)
-	{
-		*(buffer + *i_b) = *(src + i);
-		i++;
-		*i_b = *i_b + 1;
-		if (*i_b > 1024)
-		{
-			*stock = *stock + *i_b;
-			write(1, buffer, *i_b);
-			*i_b = 0;
-		}
-	}
-}
-
-/**
- * _strlen - return the length of a string
- * @s: Pointer to an string
- *
- * Return: Length of the string
- * If is a null pointer returns 0
- */
-int _strlen(char *s)
-{
-	int i = 0;
-
-	if (s == NULL)
-		return (0);
-
-	while (*(s + i) != '\0')
-		i++;
-
-	return (i);
-}
-
-/**
- * free_buffer - Writes the content of the buffer and frees it
- * @buff: Buffer to free
- * @len: Bytes to write
- *
- * Return: Always -1 (Success)
- */
-int free_buffer(char *buff, int len)
-{
-	write(1, buff, len);
-	free(buff);
-	return (-1);
+	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
+	return (len);
 }
